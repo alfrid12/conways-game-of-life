@@ -1,2 +1,2 @@
-export const fieldWidthInCells = 70;
-export const fieldHeightInCells = 60;
+export const fieldWidthInCells = 50;
+export const fieldHeightInCells = 30;

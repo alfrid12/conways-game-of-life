@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { fieldWidthInCells, fieldHeightInCells } from './config';
 import './App.css';
+import Button from 'react-bootstrap/Button';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
     const [currentGrid, setCurrentGrid] = useState<boolean[][]>([]);
@@ -133,24 +136,11 @@ const App = () => {
         setSelectingInitialConfig(true);
     };
 
-
-    const emptySquareStyle = {
-        height: "15px",
-        width: "15px",
-        border: "0.1em solid #555555",
-        display: "inline-block"
-    };
-
-    const filledSquareStyle = {
-        ...emptySquareStyle,
-        backgroundColor: "#555555"
-    };
-
-    const getCurrentGridHtml = () => {
+    const getSimulationGrid = () => {
         return currentGrid.map((row, yIndex) => {
-            return <div style={{ height: "15px" }}>
+            return <div className="cell-row">
                 {row.map((isCellAlive, xIndex) => {
-                    return <div style={isCellAlive ? filledSquareStyle : emptySquareStyle} onClick={(event) => selectInitialConfigCell(xIndex, yIndex)}></div>;
+                    return <div className={isCellAlive ? "cell live-cell" : "cell"} onClick={(event) => selectInitialConfigCell(xIndex, yIndex)}></div>;
                 })}
             </div>;
         });
@@ -159,24 +149,33 @@ const App = () => {
 
     const getSelectionGridHtml = () => {
         return startPatternSelectionGrid.map((row, yIndex) => {
-            return <div style={{ height: "15px" }}>
+            return <div className="cell-row">
                 {row.map((isCellAlive, xIndex) => {
-                    return <div style={isCellAlive ? filledSquareStyle : emptySquareStyle} onClick={(event) => selectInitialConfigCell(xIndex, yIndex)}></div>;
+                    return <div className={isCellAlive ? "cell live-cell" : "cell"} onClick={(event) => selectInitialConfigCell(xIndex, yIndex)}></div>;
                 })}
             </div>;
         });
     };
 
     return (
-        <div className="App">
-            {selectingInitialConfig && getSelectionGridHtml()}
-            {runSimulation && getCurrentGridHtml()}
+        <div className="app-container">
+            <h2 className="page-title">Alex's Conway's Game of Life</h2>
+            <div className="button-group-container">
+                <ButtonGroup size="sm" aria-label="Basic example">
+                    <Button onClick={submitInitialConfig} variant="success">Start</Button>
+                    <Button onClick={reset} variant="success">Reset</Button>
+                    <Button onClick={clearSelection} variant="success">Clear</Button>
+                </ButtonGroup>
+            </div>
+            <div className="grid-container">
+                {selectingInitialConfig && getSelectionGridHtml()}
+                {runSimulation && getSimulationGrid()}
+            </div>
 
-            <button onClick={submitInitialConfig}>Start</button>
-            <button onClick={reset}>Reset</button>
-            <button onClick={clearSelection}>Clear</button>
         </div>
     );
 }
 
 export default App;
+
+// readme
