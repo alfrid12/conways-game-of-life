@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { fieldWidthInCells, fieldHeightInCells } from './config';
 import './App.css';
 
@@ -59,7 +59,6 @@ const App = () => {
         });
 
         setCurrentGrid(newGrid);
-        setLiveCells(newLiveCells);
     };
 
     const getLivingNeighborCount = (grid: boolean[][], x: number, y: number) => {
