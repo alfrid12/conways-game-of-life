@@ -1,70 +1,68 @@
 import { useEffect, useState } from 'react';
-import { fieldWidthInCells, fieldHeightInCells } from './config';
-import './App.css';
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import { fieldWidthInCells, fieldHeightInCells, instructions } from './config';
+
+import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const App = () => {
-    const [currentGrid, setCurrentGrid] = useState<boolean[][]>([]);
-    const [selectingInitialConfig, setSelectingInitialConfig] = useState(true);
-    const [runSimulation, setRunSimulation] = useState(false);
     const [startPatternSelectionGrid, setStartPatternSelectionGrid] = useState<boolean[][]>([]);
+    const [simulationGrid, setSimulationGrid] = useState<boolean[][]>([]);
+    const [selectingInitialConfig, setSelectingInitialConfig] = useState<boolean>(true);
+    const [runSimulation, setRunSimulation] = useState<boolean>(false);
 
     useEffect(() => {
-        const freshGrid = getFreshGrid();
-        setStartPatternSelectionGrid(freshGrid);
+        const emptyGrid: boolean[][] = getEmptyGrid();
+        setStartPatternSelectionGrid(emptyGrid);
     }, []);
 
     useEffect(() => {
         if (runSimulation) {
-            const timer = setTimeout(() => stepForward(), 200);
+            const timer = setTimeout(stepForward, 300);
             return () => {
                 clearTimeout(timer);
             };
         }
-    }, [currentGrid]);
+    }, [simulationGrid]);
 
-    const getFreshGrid = () => {
-        const freshGrid: boolean[][] = [];
+    const getEmptyGrid = (): boolean[][] => {
+        const emptyGrid: boolean[][] = [];
 
         for (let i = 0; i < fieldHeightInCells; i++) {
-            const fieldRow: boolean[] = [];
+            const gridRow: boolean[] = [];
             for (let j = 0; j < fieldWidthInCells; j++) {
-                fieldRow.push(false);
+                gridRow.push(false);
             }
-            freshGrid.push(fieldRow);
+            emptyGrid.push(gridRow);
         }
 
-        return freshGrid;
+        return emptyGrid;
     };
 
     const stepForward = () => {
-        const newGrid = getFreshGrid();
-        const newLiveCells: { x: number, y: number }[] = [];
+        const newGrid: boolean[][] = getEmptyGrid();
 
-        currentGrid.forEach((gridRow, yIndex) => {
-            gridRow.forEach((cellState, xIndex) => {
-                const livingNeighborCount: number = getLivingNeighborCount(currentGrid, xIndex, yIndex);
+        simulationGrid.forEach((gridRow, yIndex) => {
+            gridRow.forEach((isCellAlive, xIndex) => {
+                const livingNeighborCount: number = getLivingNeighborCount(simulationGrid, xIndex, yIndex);
 
-                if (cellState) {
+                if (isCellAlive) {
                     if (livingNeighborCount === 2 || livingNeighborCount === 3) {
                         newGrid[yIndex][xIndex] = true;
-                        newLiveCells.push({ x: xIndex, y: yIndex });
                     }
                 } else {
                     if (livingNeighborCount === 3) {
                         newGrid[yIndex][xIndex] = true;
-                        newLiveCells.push({ x: xIndex, y: yIndex });
                     }
                 }
             });
         });
 
-        setCurrentGrid(newGrid);
+        setSimulationGrid(newGrid);
     };
 
-    const getLivingNeighborCount = (grid: boolean[][], x: number, y: number) => {
+    const getLivingNeighborCount = (grid: boolean[][], x: number, y: number): number => {
         const neighboringCellStates = [];
 
         // top left
@@ -107,21 +105,14 @@ const App = () => {
             neighboringCellStates.push(grid[y][x - 1]);
         }
 
-        return neighboringCellStates.filter(state => state === true).length;
+        const livingNeighborCount: number = neighboringCellStates.filter(isCellAlive => isCellAlive === true).length;
+        return livingNeighborCount;
     };
 
-    const submitInitialConfig = () => {
-        setCurrentGrid(startPatternSelectionGrid);
+    const startSimulation = () => {
+        setSimulationGrid(startPatternSelectionGrid);
         setSelectingInitialConfig(false);
         setRunSimulation(true);
-    };
-
-    const selectInitialConfigCell = (x: number, y: number) => {
-        if (selectingInitialConfig) {
-            const updatedInitialConfigGrid = JSON.parse(JSON.stringify(startPatternSelectionGrid));
-            updatedInitialConfigGrid[y][x] = !updatedInitialConfigGrid[y][x];
-            setStartPatternSelectionGrid(updatedInitialConfigGrid);
-        }
     };
 
     const reset = () => {
@@ -130,24 +121,23 @@ const App = () => {
     };
 
     const clearSelection = () => {
-        const freshGrid = getFreshGrid();
-        setStartPatternSelectionGrid(freshGrid);
+        const emptyGrid: boolean[][] = getEmptyGrid();
+        setStartPatternSelectionGrid(emptyGrid);
         setRunSimulation(false);
         setSelectingInitialConfig(true);
     };
 
-    const getSimulationGrid = () => {
-        return currentGrid.map((row, yIndex) => {
+    const renderSimulationGrid = () => {
+        return simulationGrid.map((row) => {
             return <div className="cell-row">
-                {row.map((isCellAlive, xIndex) => {
-                    return <div className={isCellAlive ? "cell live-cell" : "cell"} onClick={(event) => selectInitialConfigCell(xIndex, yIndex)}></div>;
+                {row.map((isCellAlive) => {
+                    return <div className={isCellAlive ? "cell live-cell" : "cell"}></div>;
                 })}
             </div>;
         });
     };
 
-
-    const getSelectionGridHtml = () => {
+    const renderSelectionGrid = () => {
         return startPatternSelectionGrid.map((row, yIndex) => {
             return <div className="cell-row">
                 {row.map((isCellAlive, xIndex) => {
@@ -157,25 +147,31 @@ const App = () => {
         });
     };
 
+    const selectInitialConfigCell = (x: number, y: number) => {
+        const updatedInitialConfigGrid = JSON.parse(JSON.stringify(startPatternSelectionGrid));
+        updatedInitialConfigGrid[y][x] = !updatedInitialConfigGrid[y][x];
+        setStartPatternSelectionGrid(updatedInitialConfigGrid);
+    };
+
     return (
         <div className="app-container">
             <h2 className="page-title">Alex's Conway's Game of Life</h2>
+
             <div className="button-group-container">
-                <ButtonGroup size="sm" aria-label="Basic example">
-                    <Button onClick={submitInitialConfig} variant="success">Start</Button>
+                <ButtonGroup size="sm">
+                    <Button onClick={startSimulation} variant="success" disabled={runSimulation}>Start</Button>
                     <Button onClick={reset} variant="success">Reset</Button>
                     <Button onClick={clearSelection} variant="success">Clear</Button>
+                    <Button onClick={() => alert(instructions)} variant="success">Help</Button>
                 </ButtonGroup>
             </div>
-            <div className="grid-container">
-                {selectingInitialConfig && getSelectionGridHtml()}
-                {runSimulation && getSimulationGrid()}
-            </div>
 
+            <div className="grid-container">
+                {selectingInitialConfig && renderSelectionGrid()}
+                {runSimulation && renderSimulationGrid()}
+            </div>
         </div>
     );
 }
 
 export default App;
-
-// readme
