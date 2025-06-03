@@ -63,7 +63,7 @@ const App = () => {
     };
 
     const getLivingNeighborCount = (grid: boolean[][], x: number, y: number): number => {
-        const neighboringCellStates = [];
+        const neighboringCellStates: boolean[] = [];
 
         // top left
         if (x > 0 && y > 0) {
