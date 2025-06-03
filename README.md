@@ -3,7 +3,7 @@
 2. `cd conways-game-of-life`
 3. `npm i`
 4. `npm start`
-5. Navigate to [http://localhost:3000](http://localhost:3000) in your browser.
+5. Navigate to [http://localhost:3000](http://localhost:3000) in your browser
 
 
 ## Resources
